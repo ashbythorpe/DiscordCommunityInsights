@@ -4,7 +4,6 @@ from datetime import datetime, timedelta, timezone
 
 import discord
 from discord.ext import commands
-from discord.guild import Guild
 from discord.message import Message
 from dotenv import load_dotenv
 
@@ -51,6 +50,7 @@ async def on_message(message):
 
 
 def log_message(message: Message):
+    message.author.id
     log_entry = f"[{message.guild.name} | #{message.channel.name}] {message.author}: {message.content}"
     logging.info(log_entry)
     print(log_entry)
