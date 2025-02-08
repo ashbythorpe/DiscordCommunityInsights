@@ -51,55 +51,29 @@ class Database:
                 FOREIGN KEY (channelId) REFERENCES Channels(id) ON DELETE CASCADE
             )
         """)
-
-def read_messages():
-    """Connect to the database and read all messages"""
-    try:
-        conn = sqlite3.connect(DATABASE_FILE)
-        cursor = conn.cursor()
-
-        cursor.execute("SELECT * FROM Messages")
-        messages = cursor.fetchall()
-
-        print("Messages:")
-        for msg in messages:
-            print(msg)
-
-        conn.close()
-    except sqlite3.Error as e:
-        print(e)
-
-read_messages()
-
-def close(self) -> None:
-    self.connection.close()
-
-def save_message(self, message: Message) -> None:
-    self.cursor.execute(
-        """
+    def save_message(self, message: Message) -> None:
+        self.cursor.execute("""
             INSERT OR IGNORE INTO Guilds (id, name)
             VALUES (?, ?)
-        """,
+            """,
             (message.guild.id, message.guild.name),
         )
 
-    self.cursor.execute(
-        """
+        self.cursor.execute("""
             INSERT OR IGNORE INTO Users (id, name)
             VALUES (?, ?)
         """,
             (message.author.id, message.author.name),
         )
 
-    self.cursor.execute(
-        """
+        self.cursor.execute("""
             INSERT OR IGNORE INTO Channels (id, name, GuildId)
             VALUES (?, ?, ?)
         """,
             (message.channel.id, message.channel.name, message.guild.id),
         )
 
-    self.cursor.execute(
+        self.cursor.execute(
         """
             INSERT OR IGNORE INTO Messages (id, content, created, userId, channelId)
             VALUES (?, ?, ?, ?, ?)
@@ -112,12 +86,34 @@ def save_message(self, message: Message) -> None:
                 message.channel.id,
             ),
         )
+        self.connection.commit()
+    
+    def close(self) -> None:
+        self.connection.close()
 
-    self.connection.commit()
+    def get_messages(self) -> list[tuple[int, str, int, int]]:
+        self.cursor.execute(
+                "SELECT id, content, created, userId, channelId FROM Messages"
+        )
 
-def get_messages(self) -> list[tuple[int, str, int, int]]:
-    self.cursor.execute(
-            "SELECT id, content, created, userId, channelId FROM Messages"
-    )
+        return self.cursor.fetchall()
+    
+def read_messages():
+    """Connect to the database and read all messages"""
+    try:
+        conn = sqlite3.connect(DATABASE_FILE)
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM Messages")
+        messages = cursor.fetchall()
 
-    return self.cursor.fetchall()
+        print("Messages:")
+        for msg in messages:
+            print(msg)
+
+        conn.close()
+    except sqlite3.Error as e:
+        print(e)    
+    
+#read_messages()
+
+

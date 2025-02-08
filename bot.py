@@ -6,18 +6,18 @@ import discord
 from discord.ext import commands
 from discord.message import Message
 from dotenv import load_dotenv
-
-from database import Database
+import database
+import topic_analysis
 
 load_dotenv()
-
-db = Database()
 
 handler = logging.StreamHandler()
 
 logging.basicConfig(
     handlers=[handler],
 )
+
+messages = []
 
 intents = discord.Intents.default()
 intents.messages = True
@@ -27,6 +27,7 @@ intents.members = True
 
 client = commands.Bot(command_prefix="!", intents=intents)
 
+database = database.Database()
 
 @client.event
 async def on_ready():
@@ -44,21 +45,20 @@ async def on_ready():
             except discord.Forbidden:
                 print(f"No permission to read history in {channel.name}")
 
-    print(db.get_messages())
-
 
 @client.event
 async def on_message(message):
     if message.author.bot:
         return  # Ignore bot messages
     log_message(message)
+    
     await client.process_commands(message)
 
 
 def log_message(message: Message):
-    message.author.id
-    db.save_message(message)
-    log_entry = f"[{message.guild.name} | #{message.channel.name}] {message.author}: {message.content} ({message.created_at})"
+    database.save_message(message)
+    log_entry = f"[{message.guild.name} | #{message.channel.name}] {message.author}: {message.content}"
+    logging.info(log_entry)
     print(log_entry)
 
 
@@ -66,5 +66,7 @@ token = os.getenv("DISCORD_TOKEN")
 
 if token is None:
     raise ValueError("DISCORD_TOKEN is not set")
+
+print(topic_analysis.get_topic_analysis(database))
 
 client.run(token, log_handler=handler)
