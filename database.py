@@ -1,5 +1,6 @@
 import sqlite3
 
+DATABASE_FILE = "database.db"
 
 class Database:
     connection: sqlite3.Connection
@@ -43,3 +44,22 @@ class Database:
                 FOREIGN KEY (channelId) REFERENCES Channels(id) ON DELETE CASCADE
             )
         """)
+
+def read_messages():
+    """Connect to the database and read all messages"""
+    try:
+        conn = sqlite3.connect(DATABASE_FILE)
+        cursor = conn.cursor()
+
+        cursor.execute("SELECT * FROM Messages")
+        messages = cursor.fetchall()
+
+        print("Messages:")
+        for msg in messages:
+            print(msg)
+
+        conn.close()
+    except sqlite3.Error as e:
+        print(e)
+
+read_messages()

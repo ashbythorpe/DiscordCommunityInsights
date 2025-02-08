@@ -20,8 +20,13 @@ def read_messages():
     except sqlite3.Error as e:
         print(e)
 
-sentiment_pipeline = pipeline(model="finiteautomata/bertweet-base-sentiment-analysis")
-data = ["I love you", "I hate you", "I don't know"]
-print(sentiment_pipeline(data))
+read_messages()
+
+def get_sentiment(data):
+    """Given a list of strings, return an object [{label: '', score: ''}]"""
+    sentiment_pipeline = pipeline(model="finiteautomata/bertweet-base-sentiment-analysis")
+    print(sentiment_pipeline(data))
+
+get_sentiment(["I love you", "I hate you", "I don't know"])
 
 
