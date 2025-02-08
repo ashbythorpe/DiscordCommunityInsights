@@ -1,5 +1,7 @@
 import sqlite3
 
+from discord.message import Message
+
 
 class Database:
     connection: sqlite3.Connection
@@ -8,6 +10,11 @@ class Database:
     def __init__(self) -> None:
         self.connection = sqlite3.connect("database.db")
         self.cursor = self.connection.cursor()
+
+        self.cursor.execute("PRAGMA foreign_keys = ON")
+        self.cursor.execute("PRAGMA journal_mode = WAL")
+
+        self._create_tables()
 
     def _create_tables(self) -> None:
         self.cursor.execute("""
@@ -43,3 +50,46 @@ class Database:
                 FOREIGN KEY (channelId) REFERENCES Channels(id) ON DELETE CASCADE
             )
         """)
+
+    def close(self) -> None:
+        self.connection.close()
+
+    def save_message(self, message: Message) -> None:
+        self.cursor.execute(
+            """
+            INSERT OR IGNORE INTO Guilds (id, name)
+            VALUES (?, ?)
+        """,
+            (message.guild.id, message.guild.name),
+        )
+
+        self.cursor.execute(
+            """
+            INSERT OR IGNORE INTO Users (id, name)
+            VALUES (?, ?)
+        """,
+            (message.author.id, message.author.name),
+        )
+
+        self.cursor.execute(
+            """
+            INSERT OR IGNORE INTO Channels (id, name, GuildId)
+            VALUES (?, ?, ?)
+        """,
+            (message.channel.id, message.channel.name, message.guild.id),
+        )
+
+        self.cursor.execute(
+            """
+            INSERT OR IGNORE INTO Messages (id, content, userId, channelId)
+            VALUES (?, ?, ?, ?)
+        """,
+            (message.id, message.content, message.author.id, message.channel.id),
+        )
+
+        self.connection.commit()
+
+    def get_messages(self) -> list[tuple[int, str, int, int]]:
+        self.cursor.execute("SELECT id, content, userId, channelId FROM Messages")
+
+        return self.cursor.fetchall()
