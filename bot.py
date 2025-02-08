@@ -7,7 +7,11 @@ from discord.ext import commands
 from discord.message import Message
 from dotenv import load_dotenv
 
+from database import Database
+
 load_dotenv()
+
+db = Database()
 
 handler = logging.StreamHandler()
 
@@ -40,6 +44,8 @@ async def on_ready():
             except discord.Forbidden:
                 print(f"No permission to read history in {channel.name}")
 
+    print(db.get_messages())
+
 
 @client.event
 async def on_message(message):
@@ -51,8 +57,8 @@ async def on_message(message):
 
 def log_message(message: Message):
     message.author.id
-    log_entry = f"[{message.guild.name} | #{message.channel.name}] {message.author}: {message.content}"
-    logging.info(log_entry)
+    db.save_message(message)
+    log_entry = f"[{message.guild.name} | #{message.channel.name}] {message.author}: {message.content} ({message.created_at})"
     print(log_entry)
 
 
