@@ -12,7 +12,6 @@ def get_topic_and_sentiment_analysis(databasE: database.Database):
     print(topics)
 
     messages = databasE.get_messages() #json object
-    print(messages)
 
     #create dictionary to store topics and their relevant messages
     topics_and_relevant_messages = defaultdict(list)
@@ -23,7 +22,7 @@ def get_topic_and_sentiment_analysis(databasE: database.Database):
         print(content)
         for topic in topics:
             if topic_analysis.is_sentence_relevant_to_topic(content, topic):
-                print(message, "is relevant to ", topic)
+                print(message, "is relevant to ", topic[0])
                 topics_and_relevant_messages[topic].append(content)
     print(topics_and_relevant_messages.values())
     
@@ -44,7 +43,7 @@ def get_topic_and_sentiment_analysis(databasE: database.Database):
             else:
                 neutral += 1
     
-        topics_and_sentiments.append((topic,(positive,negative,neutral)))
+        topics_and_sentiments.append((topic,(positive,negative,neutral,)))
 
     return topics_and_sentiments
 
@@ -70,3 +69,8 @@ def get_topics_and_key_contributors(databasE: database.Database):
         key_contributors = most_active_users_relating_to_topic(databasE, topic[0])
         topics_and_key_contributors[topic[0]] = key_contributors
     return topics_and_key_contributors
+
+
+def is_topic_being_debated(topic: str):
+    #if positive reactions and negative reactions > 0.8*netural reactions, then topic is controversial
+    pass

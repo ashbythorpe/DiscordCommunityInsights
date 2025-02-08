@@ -18,41 +18,8 @@ model = genai.GenerativeModel("gemini-pro")
 # Function to generate a response
 def get_topic_analysis(databasE: database.Database) -> json:
     processed_messages = messages_preprocessing(databasE)
-    prompt = f"""You are an AI assistant that extracts key discussion topics from conversations.  
-        Analyze the following messages and return a JSON object in this format:  
-        {{
-        "TOPICS": [
-            {{"TOPIC_NAME": "Topic 1", "TOPIC_RELEVANCE": 85}},
-            {{"TOPIC_NAME": "Topic 2", "TOPIC_RELEVANCE": 65}},
-            {{"TOPIC_NAME": "Topic 3", "TOPIC_RELEVANCE": 30}}
-        ]
-        }}
-    The input is a **JSON object** with chat messages in this format:
-        {{
-            "MESSAGES": [
-                {{
-                    "USER": "421359636524957706",
-                    "TIME": "2025-02-08 14:09:37.185000+00:00",
-                    "MESSAGE": "What do you guys think about AI ethics?"
-                }},
-                {{
-                    "USER": "267219922558517259",
-                    "TIME": "2025-02-08 14:09:43.643000+00:00",
-                    "MESSAGE": "AI regulation is really important nowadays."
-                }},
-                {{
-                    "USER": "537311422305140746",
-                    "TIME": "2025-02-08 14:10:01.231000+00:00",
-                "MESSAGE": "I agree, especially with bias in AI models."
-                }},
-                {{
-                    "USER": "421359636524957706",
-                    "TIME": "2025-02-08 14:13:01.443000+00:00",
-                    "MESSAGE": "Yeah, bias in AI is a huge issue."
-                }}
-                ]
-        }}
-        Now, process this input and extract key topics: {processed_messages}"""
+    prompt = f"""Here we see a series of messages formatted in a JSON object in the following form
+{{"MESSAGES": [{{"USER": the user who sent the message, "TIME": the time at which the message is sent, formatted in natural language typically relative to the current datetime which is _INSERT CURRENT DATETIME, "MESSAGE": the content of the message}}, ... for all of the messages]}}. I want to extract the topics of discussion of the conversation, returned in the form of a JSON object of the form {{"TOPICS": [{{"TOPIC_NAME": name of the topic concisely - maximum 3 words, "TOPIC_RELEVANCE": a score between 1 to 100 where 100 means this topic is referenced across 100% of messages, and 1 means the topic is referenced across 1% of messages - in general a score of x means a topic is referenced across x% of messages}}]}}. Here is the object of the messages from the chat {processed_messages}"""
     response = model.generate_content(prompt)
     return json.loads(response.text)  # Extract the text output
 

@@ -51,7 +51,7 @@ async def on_message(message):
             await message.channel.send("Performing analysis...")
             await message.channel.send(format_analysis_nicely(analysis.get_topic_and_sentiment_analysis(database)))
             return
-        elif message.content=="!topicsAndUsers":
+        if message.content=="!topicsAndUsers":
             await message.channel.send("Performing analysis...")
             await message.channel.send(analysis.get_topics_and_key_contributors(database))
     elif message.author.bot:
@@ -81,10 +81,7 @@ def format_analysis_nicely(analysis):
 
     output = output+("\n**Opinions:**\n")
     for i in analysis:
-        output = output+(f"-{i[0]}: {i[1][0]} positive, {i[1][1]} negative, {i[1][2]} neutral comments \n")
-    
+        output = output+(f"-{i[0]}: {i[1][0]} positive, {i[1][1]} negative, {i[1][2]} neutral comments \n")    
     return output
-
-
 
 client.run(token, log_handler=handler) #start the bot
