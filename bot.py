@@ -8,7 +8,6 @@ from discord.message import Message
 from dotenv import load_dotenv
 
 from database import Database
-import database
 
 load_dotenv()
 
@@ -59,7 +58,7 @@ async def on_message(message):
 def log_message(message: Message):
     message.author.id
     db.save_message(message)
-    log_entry = f"[{message.guild.name} | #{message.channel.name}] {message.author}: {message.content}"
+    log_entry = f"[{message.guild.name} | #{message.channel.name}] {message.author}: {message.content} ({message.created_at})"
     print(log_entry)
 
 

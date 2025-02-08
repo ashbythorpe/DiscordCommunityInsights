@@ -44,6 +44,7 @@ class Database:
             CREATE TABLE IF NOT EXISTS Messages (
                 id INTEGER NOT NULL PRIMARY KEY,
                 content TEXT NOT NULL,
+                created TIMESTAMP NOT NULL,
                 userId INTEGER NOT NULL,
                 channelId INTEGER NOT NULL,
                 FOREIGN KEY (userId) REFERENCES Users(id) ON DELETE CASCADE,
@@ -81,15 +82,23 @@ class Database:
 
         self.cursor.execute(
             """
-            INSERT OR IGNORE INTO Messages (id, content, userId, channelId)
-            VALUES (?, ?, ?, ?)
+            INSERT OR IGNORE INTO Messages (id, content, created, userId, channelId)
+            VALUES (?, ?, ?, ?, ?)
         """,
-            (message.id, message.content, message.author.id, message.channel.id),
+            (
+                message.id,
+                message.content,
+                message.created_at,
+                message.author.id,
+                message.channel.id,
+            ),
         )
 
         self.connection.commit()
 
     def get_messages(self) -> list[tuple[int, str, int, int]]:
-        self.cursor.execute("SELECT id, content, userId, channelId FROM Messages")
+        self.cursor.execute(
+            "SELECT id, content, created, userId, channelId FROM Messages"
+        )
 
         return self.cursor.fetchall()
