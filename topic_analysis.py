@@ -4,6 +4,7 @@ import os
 import database
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
+import json
 
 load_dotenv()
 
@@ -15,24 +16,60 @@ genai.configure(api_key=API_KEY)
 model = genai.GenerativeModel("gemini-pro")
 
 # Function to generate a response
-def get_topic_analysis(databasE: database.Database):
+def get_topic_analysis(databasE: database.Database) -> json:
     processed_messages = messages_preprocessing(databasE)
-    prompt = f"""Here we see a series of messages formatted in a JSON object in the following form {{"MESSAGES": [{{"USER": the user who sent the message, "TIME": the time at which the message is sent, formatted in natural language typically relative to the current datetime which is _INSERT CURRENT DATETIME, "MESSAGE": the content of the message}}, ... for all of the messages]}}. I want to extract the topics of discussion of the conversation, returned in the form of a JSON object of the form {{"TOPICS": [{{"TOPIC_NAME": name of the topic concisely - maximum 3 words, "TOPIC_RELEVANCE": a score between 1 to 100 where 100 means this topic is referenced across 100% of messages, and 1 means the topic is referenced across 1% of messages - in general a score of x means a topic is referenced across x% of messages}}]}}. Here is the object of the messages from the chat {processed_messages}"""
+    prompt = f"""You are an AI assistant that extracts key discussion topics from conversations.  
+        Analyze the following messages and return a JSON object in this format:  
+        {{
+        "TOPICS": [
+            {{"TOPIC_NAME": "Topic 1", "TOPIC_RELEVANCE": 85}},
+            {{"TOPIC_NAME": "Topic 2", "TOPIC_RELEVANCE": 65}},
+            {{"TOPIC_NAME": "Topic 3", "TOPIC_RELEVANCE": 30}}
+        ]
+        }}
+    The input is a **JSON object** with chat messages in this format:
+        {{
+            "MESSAGES": [
+                {{
+                    "USER": "421359636524957706",
+                    "TIME": "2025-02-08 14:09:37.185000+00:00",
+                    "MESSAGE": "What do you guys think about AI ethics?"
+                }},
+                {{
+                    "USER": "267219922558517259",
+                    "TIME": "2025-02-08 14:09:43.643000+00:00",
+                    "MESSAGE": "AI regulation is really important nowadays."
+                }},
+                {{
+                    "USER": "537311422305140746",
+                    "TIME": "2025-02-08 14:10:01.231000+00:00",
+                "MESSAGE": "I agree, especially with bias in AI models."
+                }},
+                {{
+                    "USER": "421359636524957706",
+                    "TIME": "2025-02-08 14:13:01.443000+00:00",
+                    "MESSAGE": "Yeah, bias in AI is a huge issue."
+                }}
+                ]
+        }}
+        Now, process this input and extract key topics: {processed_messages}"""
     response = model.generate_content(prompt)
-    return response.text  # Extract the text output
+    return json.loads(response.text)  # Extract the text output
 
-def messages_preprocessing(databasE: database.Database):
+def messages_preprocessing(databasE: database.Database) -> json:
     # messages have format (id, content, timestamp, user_id, channel_id)
     """given messages, process them into a json {MESSAGES: [USER, TIME, MESSAGE]}"""
     messages = databasE.get_messages()
     json_messages_values = [
         {
-            "user_id": message[3],
-            "time": message[2],
-            "content": message[1]
+            "USER": message[3],
+            "TIME": message[2],
+            "MESSAGE": message[1].lower()
             }
             for message in messages
         ]
+    for i in json_messages_values:
+        print(i)
     json_output = {"MESSAGES": json_messages_values}
     return json_output
 
@@ -41,13 +78,10 @@ def messages_preprocessing(databasE: database.Database):
 
 
 def is_sentence_relevant_to_topic(sentence: str, topic: str) -> bool:
-    print("Point 1")
-    print("Point 2")
     threshold = 0.2
     vectorizer = TfidfVectorizer()
     vectors = vectorizer.fit_transform([sentence, topic])
-    print("Point 3")
     similarity = cosine_similarity(vectors[0], vectors[1])[0][0]
     return similarity >= threshold
 
-print(is_sentence_relevant_to_topic("I love you", "james"))
+print(is_sentence_relevant_to_topic("I love you", "love"))
