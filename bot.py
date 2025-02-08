@@ -1,5 +1,4 @@
-import logging
-import os
+import logging,os, json
 from datetime import datetime, timedelta, timezone
 
 import discord
@@ -67,6 +66,6 @@ token = os.getenv("DISCORD_TOKEN")
 if token is None:
     raise ValueError("DISCORD_TOKEN is not set")
 
-print(topic_analysis.get_topic_analysis(database))
+print(json.loads(topic_analysis.get_topic_analysis(database)))
 
 client.run(token, log_handler=handler)

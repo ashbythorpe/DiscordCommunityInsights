@@ -2,6 +2,8 @@ import google.generativeai as genai
 from dotenv import load_dotenv
 import os
 import database
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics.pairwise import cosine_similarity
 
 load_dotenv()
 
@@ -36,3 +38,16 @@ def messages_preprocessing(databasE: database.Database):
 
 #response = chat_with_gemini(user_prompt)
 #print("Gemini:", response))
+
+
+def is_sentence_relevant_to_topic(sentence: str, topic: str) -> bool:
+    print("Point 1")
+    print("Point 2")
+    threshold = 0.2
+    vectorizer = TfidfVectorizer()
+    vectors = vectorizer.fit_transform([sentence, topic])
+    print("Point 3")
+    similarity = cosine_similarity(vectors[0], vectors[1])[0][0]
+    return similarity >= threshold
+
+print(is_sentence_relevant_to_topic("I love you", "james"))
