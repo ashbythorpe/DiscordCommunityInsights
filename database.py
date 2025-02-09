@@ -98,6 +98,13 @@ class Database:
 
         return self.cursor.fetchall()
     
+    def get_users(self) -> list[tuple[int, str]]:
+        self.cursor.execute(
+                "SELECT id, name FROM Users"
+        )
+
+        return self.cursor.fetchall()
+    
 def read_messages():
     """Connect to the database and read all messages"""
     try:
@@ -111,9 +118,23 @@ def read_messages():
             print(msg)
 
         conn.close()
+
+        return messages
     except sqlite3.Error as e:
         print(e)    
     
 #read_messages()
+
+def search_message_by_topic(topic: str, database: Database) -> list:
+    """Given a message, search through the database for messages """
+    relevant_messages = []
+    messages = database.get_messages()
+    from topic_analysis import is_sentence_relevant_to_topic
+    for message in messages:
+        if is_sentence_relevant_to_topic(message[1], topic):
+            relevant_messages.append(message)
+
+    return relevant_messages
+
 
 
