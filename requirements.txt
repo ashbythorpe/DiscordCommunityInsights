@@ -1,0 +1,6 @@
+transformers
+python 3.12
+tensorflow
+discord
+
+and more...
